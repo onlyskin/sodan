@@ -3,7 +3,7 @@ var selected;
 var names = [];
 
 var data = names.map((o) => {
-    return {name: o, value: 0}
+  return {name: o, value: 0}
 });
 
 // Add an event listener
@@ -20,8 +20,8 @@ function add_person() {
   let name = this.value;
   this.value = '';
   names.push(name)
-  data.push({name: name, value: 0})
-    draw(selected, names);
+data.push({name: name, value: 0, turns: 0})
+draw(selected, names);
 }
 
 function draw_buttons(selected, names, selector) {
@@ -29,11 +29,11 @@ function draw_buttons(selected, names, selector) {
   var root = d3.select(element);
   var names = root.selectAll('.name').data(names);
   names.enter().append('button')
-    .attr('class', 'name')
-    .on('click', name => send('name-selected', { name }));
+  .attr('class', 'name')
+  .on('click', name => send('name-selected', { name }));
   names
-    .text(name => name)
-    .classed('selected', name => selected === name);
+  .text(name => name)
+  .classed('selected', name => selected === name);
   names.exit().remove()
 }
 
@@ -50,19 +50,33 @@ function init() {
   const input = document.querySelector('.name_input');
   input.addEventListener('change', add_person)
 
-
-  draw(selected, names);
-}
-
-document.addEventListener('name-selected', function(e) {
-  selected = e.detail.name === selected ? undefined : e.detail.name;
-  draw(selected, names);
-});
+  document.addEventListener('name-selected', function(e) {
+    if (selected !== e.detail.name){
+      selected = e.detail.name
+      var i = names.indexOf(selected);
+      data[i].turns += 1;
+    updateTurns();
+    }
+    draw(selected, names);
+  } );
 
 function draw(selected, names) {
   speaking = selected;
   draw_buttons(selected, names, '#buttons');
   draw_pie_chart(data, pie_chart_selector);
+}
+
+function updateTurns(){
+  var container = document.getElementById("stats");
+  container.innerHTML = `${getTurns()}`;
+}
+
+function getTurns(){
+  var turns = "";
+  for (var i = 0; i < data.length; i++){
+    turns += `${data[i].name} - ${data[i].turns}` + "<br>";
+  }
+  return turns;
 }
 
 init();
